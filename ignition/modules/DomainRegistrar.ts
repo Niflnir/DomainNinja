@@ -1,12 +1,9 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("DomainRegistrarModule", (m) => {
-  // Deploy Registrar contract
-  const registrar = m.contract("Registrar");
-
-  // Deploy Auction contract
-  const auction = m.contract("Auction");
+  // Deploy DomainRegistrar contract
+  const domainRegistrar = m.contract("DomainRegistrar");
 
   // Return deployed contracts
-  return { registrar, auction };
+  return { registrar: domainRegistrar };
 });

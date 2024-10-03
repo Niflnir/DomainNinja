@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract AuctionManager {
+import "hardhat/console.sol";
+
+contract DomainRegistrar {
     struct Bid {
         bytes32 commitment;
         bool revealed;
@@ -14,12 +16,26 @@ contract AuctionManager {
         address highestBidder;
     }
 
+    string[] public domains;
     mapping(string => Auction) public activeAuctions;
     mapping(string => mapping(address => Bid)) public bids;
 
-    constructor() {}
+    constructor() {
+        domains.push("a.ntu");
+        domains.push("b.ntu");
+        domains.push("c.ntu");
+        domains.push("d.ntu");
+        domains.push("e.ntu");
+    }
 
-    function commitBid(string memory _domain, bytes32 _commitment) external {
+    function getDomains() external view returns (string[] memory) {
+        return domains;
+    }
+
+    function commitBid(
+        string memory _domain,
+        bytes32 _commitment
+    ) external payable {
         if (activeAuctions[_domain].auctionStart == 0) {
             // Start an auction for the domain
             activeAuctions[_domain] = Auction(
