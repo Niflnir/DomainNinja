@@ -1,18 +1,22 @@
 import Web3 from "web3";
 
 const generateSalt = (web3: Web3) => {
-  const hexSalt = web3.utils.randomHex(length);
+  const hexSalt = web3.utils.randomHex(16);
   return hexSalt.slice(2);
 }
 
-const generateCommitment = (web3: Web3, value: string, salt: string) => {
-  // Convert inputs to bytes
-  const valueBytes = Web3.utils.utf8ToHex(value);
-  const saltBytes = Web3.utils.utf8ToHex(salt);
+const generateCommitment = (web3: Web3, amount: string, secret: string) => {
+  // Convert to bytes
+  const amountBytes = web3.utils.asciiToHex(amount);
+  const secretBytes = web3.utils.asciiToHex(secret);
 
   // Perform keccak256 hashing
-  const hash = Web3.utils.keccak256(web3.eth.abi.encodeParameters(['bytes32', 'bytes32'], [valueBytes, saltBytes]));
-  return hash;
+  const commitment = web3.utils.soliditySha3(
+    { t: 'bytes32', v: amountBytes },
+    { t: 'bytes32', v: secretBytes }
+  );
+  console.log("commitment:", commitment);
+  return commitment;
 }
 
 export { generateSalt, generateCommitment };

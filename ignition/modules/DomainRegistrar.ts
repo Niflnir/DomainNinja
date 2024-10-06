@@ -5,5 +5,5 @@ export default buildModule("DomainRegistrarModule", (m) => {
   const domainRegistrar = m.contract("DomainRegistrar");
 
   // Return deployed contracts
-  return { registrar: domainRegistrar };
+  return { domainRegistrar };
 });

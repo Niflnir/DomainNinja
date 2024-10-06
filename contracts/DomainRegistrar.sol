@@ -9,8 +9,8 @@ contract DomainRegistrar {
         bool revealed;
     }
     struct Auction {
-        uint256 auctionStart;
-        uint256 auctionEnd;
+        uint256 biddingStart;
+        uint256 biddingEnd;
         uint256 revealEnd;
         uint256 highestBid;
         address highestBidder;
@@ -36,12 +36,12 @@ contract DomainRegistrar {
         string memory _domain,
         bytes32 _commitment
     ) external payable {
-        if (activeAuctions[_domain].auctionStart == 0) {
+        if (activeAuctions[_domain].biddingStart == 0) {
             // Start an auction for the domain
             activeAuctions[_domain] = Auction(
                 block.timestamp,
-                block.timestamp + 5 minutes,
-                block.timestamp + 10 minutes,
+                block.timestamp + 10 seconds,
+                block.timestamp + 30 seconds,
                 0,
                 address(0)
             );
@@ -53,31 +53,41 @@ contract DomainRegistrar {
         bids[_domain][msg.sender] = Bid(_commitment, false);
     }
 
-    // function revealBid(
-    //     string memory _domain,
-    //     uint256 _amount,
-    //     bytes32 _secret
-    // ) external {
-    //     Auction storage auction = activeAuctions[_domain];
-    //     require(
-    //         block.timestamp > auction.auctionEnd &&
-    //             block.timestamp <= auction.revealEnd,
-    //         "Not in reveal phase"
-    //     );
-    //     require(!bids[msg.sender].revealed, "Bid already revealed");
-    //
-    //     Bid storage bid = bids[msg.sender];
-    //     require(
-    //         keccak256(abi.encodePacked(msg.sender, _amount, _secret)) ==
-    //             bid.commitment,
-    //         "Invalid reveal"
-    //     );
-    //
-    //     bid.revealed = true;
-    //
-    //     if (_amount > highestBid) {
-    //         highestBidder = msg.sender;
-    //         highestBid = _amount;
-    //     }
-    // }
+    function revealBid(
+        string memory _domain,
+        bytes32 _amount,
+        bytes32 _secret
+    ) external {
+        Auction storage auction = activeAuctions[_domain];
+        require(auction.biddingStart != 0, "Auction does not exist");
+        require(
+            block.timestamp > auction.biddingEnd &&
+                block.timestamp <= auction.revealEnd,
+            "Not in reveal phase"
+        );
+
+        Bid storage bid = bids[_domain][msg.sender];
+        require(!bid.revealed, "Bid already revealed");
+
+        // Check if hashed amount and secret is equal to commitment in bidding phase
+        require(
+            keccak256(abi.encodePacked(_amount, _secret)) == bid.commitment,
+            "Invalid reveal"
+        );
+
+        bid.revealed = true;
+        if (uint256(_amount) > auction.highestBid) {
+            auction.highestBid = uint256(_amount);
+            auction.highestBidder = msg.sender;
+        }
+    }
+
+    function getDomainOwner(
+        string memory _domain
+    ) external view returns (address) {
+        Auction storage auction = activeAuctions[_domain];
+        require(auction.biddingStart != 0, "Auction does not exist");
+        require(block.timestamp > auction.biddingEnd, "Auction still ongoing");
+        return auction.highestBidder;
+    }
 }

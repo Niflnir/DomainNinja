@@ -3,6 +3,14 @@ import "@nomicfoundation/hardhat-toolbox";
 
 const config: HardhatUserConfig = {
   solidity: "0.8.27",
+  networks: {
+    hardhat: {
+      mining: {
+        auto: true,
+        interval: 10000
+      }
+    }
+  }
 };
 
 export default config;

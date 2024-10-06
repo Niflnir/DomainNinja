@@ -46,7 +46,7 @@ const DomainListing: React.FC<DomainListingProps> = ({ web3, domain: domainName 
           gasPrice: await web3.eth.getGasPrice(),
           nonce: await web3.eth.getTransactionCount(account),
         },
-        '<account-private-key>'
+        '<private-key>'
       )
 
       // Generate receipt
@@ -57,6 +57,8 @@ const DomainListing: React.FC<DomainListingProps> = ({ web3, domain: domainName 
       console.log(`Tx successful with hash: ${receipt.transactionHash}`);
     }
     commitBid();
+    console.log("Salt: ", salt);
+    alert(salt);
   }
 
   return (
