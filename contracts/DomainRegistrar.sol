@@ -4,6 +4,10 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
 contract DomainRegistrar {
+    struct Domain {
+        string name;
+        address owner;
+    }
     struct Bid {
         bytes32 commitment;
         bool revealed;
@@ -16,20 +20,26 @@ contract DomainRegistrar {
         address highestBidder;
     }
 
-    string[] public domains;
+    Domain[] public domains;
     mapping(string => Auction) public activeAuctions;
     mapping(string => mapping(address => Bid)) public bids;
 
     constructor() {
-        domains.push("a.ntu");
-        domains.push("b.ntu");
-        domains.push("c.ntu");
-        domains.push("d.ntu");
-        domains.push("e.ntu");
+        for (uint256 i = 0; i < 10; i++) {
+            bytes memory domainNameBytes = abi.encodePacked(
+                char(97 + i),
+                ".ntu"
+            );
+            domains.push(Domain(string(domainNameBytes), address(0)));
+        }
     }
 
     function getDomains() external view returns (string[] memory) {
-        return domains;
+        string[] memory domainNames = new string[](domains.length);
+        for (uint256 i = 0; i < domains.length; i++) {
+            domainNames[i] = domains[i].name;
+        }
+        return domainNames;
     }
 
     function commitBid(
@@ -89,5 +99,9 @@ contract DomainRegistrar {
         require(auction.biddingStart != 0, "Auction does not exist");
         require(block.timestamp > auction.biddingEnd, "Auction still ongoing");
         return auction.highestBidder;
+    }
+
+    function char(uint256 _ascii) internal pure returns (bytes1) {
+        return bytes1(uint8(_ascii));
     }
 }
