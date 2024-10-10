@@ -34,12 +34,8 @@ contract DomainRegistrar {
         }
     }
 
-    function getDomains() external view returns (string[] memory) {
-        string[] memory domainNames = new string[](domains.length);
-        for (uint256 i = 0; i < domains.length; i++) {
-            domainNames[i] = domains[i].name;
-        }
-        return domainNames;
+    function getDomains() external view returns (Domain[] memory) {
+        return domains;
     }
 
     function commitBid(
