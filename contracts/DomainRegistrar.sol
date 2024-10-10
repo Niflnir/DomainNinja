@@ -4,23 +4,27 @@ pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 
 contract DomainRegistrar {
-    struct Domain {
-        string name;
-        address owner;
+    enum Status {
+        AVAILABLE,
+        REGISTERED,
+        COMMIT,
+        REVEAL
     }
     struct Bid {
         bytes32 commitment;
         bool revealed;
     }
     struct Auction {
-        uint256 biddingStart;
-        uint256 biddingEnd;
+        uint256 commitStart;
+        uint256 commitEnd;
         uint256 revealEnd;
         uint256 highestBid;
         address highestBidder;
     }
 
-    Domain[] public domains;
+    string[] public domains;
+    mapping(string => address) domainOwner;
+    mapping(string => Status) domainStatus;
     mapping(string => Auction) public activeAuctions;
     mapping(string => mapping(address => Bid)) public bids;
 
@@ -30,19 +34,32 @@ contract DomainRegistrar {
                 char(97 + i),
                 ".ntu"
             );
-            domains.push(Domain(string(domainNameBytes), address(0)));
+            string memory domain = string(domainNameBytes);
+            domains.push(domain);
+            domainOwner[domain] = address(0);
+            domainStatus[domain] = Status.AVAILABLE;
         }
     }
 
-    function getDomains() external view returns (Domain[] memory) {
+    function getDomains() external view returns (string[] memory) {
         return domains;
+    }
+
+    function getAvailableDomains() external view returns (string[] memory) {
+        string[] memory domainNames = new string[](domains.length);
+        for (uint256 i = 0; i < domains.length; i++) {
+            if (domainStatus[domains[i]] == Status.AVAILABLE) {
+                domainNames[i] = domains[i];
+            }
+        }
+        return domainNames;
     }
 
     function commitBid(
         string memory _domain,
         bytes32 _commitment
     ) external payable {
-        if (activeAuctions[_domain].biddingStart == 0) {
+        if (activeAuctions[_domain].commitStart == 0) {
             // Start an auction for the domain
             activeAuctions[_domain] = Auction(
                 block.timestamp,
@@ -51,6 +68,7 @@ contract DomainRegistrar {
                 0,
                 address(0)
             );
+            domainStatus[_domain] = Status.COMMIT;
         }
         require(
             bids[_domain][msg.sender].commitment == bytes32(0),
@@ -65,9 +83,9 @@ contract DomainRegistrar {
         bytes32 _secret
     ) external {
         Auction storage auction = activeAuctions[_domain];
-        require(auction.biddingStart != 0, "Auction does not exist");
+        require(auction.commitStart != 0, "Auction does not exist");
         require(
-            block.timestamp > auction.biddingEnd &&
+            block.timestamp > auction.commitEnd &&
                 block.timestamp <= auction.revealEnd,
             "Not in reveal phase"
         );
@@ -92,8 +110,8 @@ contract DomainRegistrar {
         string memory _domain
     ) external view returns (address) {
         Auction storage auction = activeAuctions[_domain];
-        require(auction.biddingStart != 0, "Auction does not exist");
-        require(block.timestamp > auction.biddingEnd, "Auction still ongoing");
+        require(auction.commitStart != 0, "Auction does not exist");
+        require(block.timestamp > auction.commitEnd, "Auction still ongoing");
         return auction.highestBidder;
     }
 

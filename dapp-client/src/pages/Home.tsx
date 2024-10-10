@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from '../components/ui/button';
+import Navbar from '../components/Navbar';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import Web3 from 'web3';
-import { domainRegistrarAbi, domainRegistrarAddress } from './utils/constants';
-import { Button } from './components/ui/button';
-import Navbar from './components/Navbar';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './components/ui/table';
 
-interface Domain {
-  name: string;
-  owner: string;
+interface HomeProps {
+  web3: Web3;
+  contract: any;
 }
 
-function Home(): React.ReactElement {
-  const [domains, setDomains] = useState<Domain[]>([]);
-  const [loading, setLoading] = useState(true);
-  const web3: Web3 = new Web3("ws://localhost:8545");
-  const registrarContract = new web3.eth.Contract(domainRegistrarAbi, domainRegistrarAddress);
+const Home: React.FC<HomeProps> = ({ web3, contract }) => {
+  const [domains, setDomains] = useState<string[]>([]);
 
   useEffect(() => {
     const checkMetamask = async () => {
@@ -26,10 +22,9 @@ function Home(): React.ReactElement {
       console.log(accounts);
     }
     const fetchDomains = async () => {
-      const newDomains: Domain[] = await registrarContract.methods.getDomains().call();
+      const newDomains: string[] = await contract.methods.getDomains().call();
       console.log(newDomains);
       setDomains(newDomains);
-      setLoading(false);
     }
     checkMetamask();
     fetchDomains();
@@ -71,13 +66,9 @@ function Home(): React.ReactElement {
   //   revealBid();
   // }
 
-  if (loading) {
-    return <></>;
-  }
-
   return (
     <div className='absolute flex h-full w-full flex-col bg-white'>
-      <Navbar></Navbar>
+      <Navbar />
       <div className='flex flex-col items-center justify-center px-10 pb-10'>
         <div className='flex justify-center py-6 text-xl font-bold'>Domain Name Listings</div>
         <div className='w-3/5 rounded-lg border border-gray-200 shadow-md'>
@@ -92,7 +83,7 @@ function Home(): React.ReactElement {
             <TableBody>
               {domains.map((domain) => (
                 <TableRow>
-                  <TableCell>{domain.name}</TableCell>
+                  <TableCell>{domain}</TableCell>
                   <TableCell>Available</TableCell>
                   <TableCell>
                     <Button type="submit">Commit</Button>
