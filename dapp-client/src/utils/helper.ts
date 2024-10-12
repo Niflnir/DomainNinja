@@ -1,6 +1,6 @@
 import Web3 from "web3";
 
-const generateSalt = (web3: Web3) => {
+const generateSecret = (web3: Web3) => {
   const hexSalt = web3.utils.randomHex(16);
   return hexSalt.slice(2);
 }
@@ -15,8 +15,7 @@ const generateCommitment = (web3: Web3, amount: string, secret: string) => {
     { t: 'bytes32', v: amountBytes },
     { t: 'bytes32', v: secretBytes }
   );
-  console.log("commitment:", commitment);
   return commitment;
 }
 
-export { generateSalt, generateCommitment };
+export { generateSecret, generateCommitment };

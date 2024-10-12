@@ -3,14 +3,22 @@ import { Button } from '../components/ui/button';
 import Navbar from '../components/Navbar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import Web3 from 'web3';
+import { ethers } from 'ethers';
+import { domainRegistrarAbi, domainRegistrarAddress } from '@/utils/constants';
+import { useNavigate } from 'react-router-dom';
+
+interface DomainWithStatus {
+  domain: string;
+  status: string;
+}
 
 interface HomeProps {
   web3: Web3;
-  contract: any;
 }
 
-const Home: React.FC<HomeProps> = ({ web3, contract }) => {
-  const [domains, setDomains] = useState<string[]>([]);
+const Home: React.FC<HomeProps> = () => {
+  const navigate = useNavigate();
+  const [domainsWithStatus, setDomainsWithStatus] = useState<DomainWithStatus[]>([]);
 
   useEffect(() => {
     const checkMetamask = async () => {
@@ -22,49 +30,15 @@ const Home: React.FC<HomeProps> = ({ web3, contract }) => {
       console.log(accounts);
     }
     const fetchDomains = async () => {
-      const newDomains: string[] = await contract.methods.getDomains().call();
-      console.log(newDomains);
-      setDomains(newDomains);
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const contract = new ethers.Contract(domainRegistrarAddress, domainRegistrarAbi, provider);
+      const domainsWithStatus: DomainWithStatus[] = await contract.getDomainsWithStatus();
+      console.log(domainsWithStatus);
+      setDomainsWithStatus(domainsWithStatus);
     }
     checkMetamask();
     fetchDomains();
   }, [])
-
-  // const revealBidHandler = async () => {
-  //   if (!revealAmount || !revealSecret) {
-  //     console.error("Invalid amount or secret.");
-  //     return;
-  //   };
-  //
-  //   const accounts = await web3.eth.getAccounts(); console.log(accounts);
-  //   const account = accounts[0];
-  //
-  //   // Build revealBid transaction
-  //   const revealBidTx = registrarContract.methods.revealBid(revealDomain, web3.utils.asciiToHex(revealAmount).padEnd(66, '0'), web3.utils.asciiToHex(revealSecret).padEnd(66, '0'));
-  //
-  //   const revealBid = async () => {
-  //     // Sign transaction with Private Key
-  //     const signedTransaction = await web3.eth.accounts.signTransaction(
-  //       {
-  //         from: account,
-  //         to: domainRegistrarAddress,
-  //         data: revealBidTx.encodeABI(),
-  //         gas: '200000',
-  //         gasPrice: await web3.eth.getGasPrice(),
-  //         nonce: await web3.eth.getTransactionCount(account),
-  //       },
-  //       '<private-key>'
-  //     )
-  //
-  //     // Generate receipt
-  //     const receipt = await web3.eth.sendSignedTransaction(
-  //       signedTransaction.rawTransaction
-  //     )
-  //
-  //     console.log(`Tx successful with hash: ${receipt.transactionHash}`);
-  //   }
-  //   revealBid();
-  // }
 
   return (
     <div className='absolute flex h-full w-full flex-col bg-white'>
@@ -81,29 +55,30 @@ const Home: React.FC<HomeProps> = ({ web3, contract }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {domains.map((domain) => (
-                <TableRow>
-                  <TableCell>{domain}</TableCell>
-                  <TableCell>Available</TableCell>
-                  <TableCell>
-                    <Button type="submit">Commit</Button>
-                  </TableCell>
+              {domainsWithStatus.map((item) => (
+                <TableRow key={item.domain}>
+                  <TableCell>{item.domain}</TableCell>
+                  <TableCell>{item.status}</TableCell>
+                  {
+                    (item.status === "Commit" || item.status === "Available")
+                    &&
+                    <TableCell>
+                      <Button type="submit" onClick={() => navigate("/bid")}>Bid</Button>
+                    </TableCell>
+                  }
+                  {
+                    item.status === "Reveal"
+                    &&
+                    <TableCell>
+                      <Button type="submit" onClick={() => navigate("/reveal")}>Reveal</Button>
+                    </TableCell>
+                  }
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       </div>
-      {/**
-      <div className='flex flex-col space-y-4 w-full items-center'>
-        {domains.map((domain) => <DomainListing key={domain.name} web3={web3} domainName={domain.name} />)}
-      </div>
-      <div>Reveal Bid</div>
-      <Input type="email" placeholder="Domain" value={revealDomain} onChange={(e) => setRevealDomain(e.target.value)} />
-      <Input type="number" placeholder="Amount" value={revealAmount} onChange={(e) => setRevealAmount(e.target.value)} />
-      <Input type="email" placeholder="Secret" value={revealSecret} onChange={(e) => setRevealSecret(e.target.value)} />
-      <Button type="submit" onClick={() => revealBidHandler()}>Reveal</Button>
-      **/}
     </div>
   );
 }
