@@ -1,3 +1,4 @@
+![Domain Ninja Logo](logo.png)
 ### Setup local hardhat
 Export seed phrase and start hardhat
 ```zsh
