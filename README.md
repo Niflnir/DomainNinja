@@ -1,6 +1,8 @@
-![Domain Ninja Logo](logo.png)
+<img src="logo.png" alt="Domain Ninja Logo" width="500"/>
 
 My Decentralized Domain Name Registrar
+
+---
 
 ### Setup local hardhat
 Export seed phrase and start hardhat
