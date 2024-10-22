@@ -82,9 +82,9 @@ const Account: React.FC<AccountProps> = () => {
             </TableBody>
           </Table>
         </div>
-        <div className="flex flex-col justify-center py-20 gap-y-4">
+        <div className="flex flex-col justify-center gap-y-4 py-52">
           <div>Pending refunds: ${pendingRefunds / Math.pow(10, 18)} ETH</div>
-          <Button type="submit" onClick={() => withdrawRefundHandler()}>Withdraw Refund</Button>
+          <Button disabled={!pendingRefunds} type="submit" onClick={() => withdrawRefundHandler()}>Withdraw Refund</Button>
         </div>
       </div>
     </div>

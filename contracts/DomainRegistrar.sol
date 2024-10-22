@@ -20,13 +20,13 @@ contract DomainRegistrar {
         uint256 highestBid;
         address highestBidder;
     }
-    struct DomainWithStatus {
+    struct DomainInfo {
         string domain;
         string status;
+        address owner;
     }
 
     string[] public domains;
-    mapping(string => address) domainOwner;
     mapping(string => Auction) public auctions;
     mapping(string => mapping(address => Bid[])) bids;
     mapping(address => uint256) pendingRefunds;
@@ -44,7 +44,6 @@ contract DomainRegistrar {
             );
             string memory domain = string(domainNameBytes);
             domains.push(domain);
-            domainOwner[domain] = address(0);
         }
     }
 
@@ -73,14 +72,14 @@ contract DomainRegistrar {
     function getDomainsWithStatus()
         external
         view
-        returns (DomainWithStatus[] memory)
+        returns (DomainInfo[] memory)
     {
-        DomainWithStatus[] memory domainsWithStatus = new DomainWithStatus[](
-            domains.length
-        );
+        DomainInfo[] memory domainInfos = new DomainInfo[](domains.length);
         for (uint256 i = 0; i < domains.length; i++) {
             Status status = getDomainStatus(auctions[domains[i]]);
+            Auction memory auction = auctions[domains[i]];
             string memory statusString;
+            address owner = address(0);
             if (status == Status.Available) {
                 statusString = "Available";
             } else if (status == Status.Bidding) {
@@ -89,10 +88,11 @@ contract DomainRegistrar {
                 statusString = "Revealing";
             } else {
                 statusString = "Registered";
+                owner = auction.highestBidder;
             }
-            domainsWithStatus[i] = DomainWithStatus(domains[i], statusString);
+            domainInfos[i] = DomainInfo(domains[i], statusString, owner);
         }
-        return domainsWithStatus;
+        return domainInfos;
     }
 
     function bid(
@@ -103,8 +103,8 @@ contract DomainRegistrar {
         if (auctions[_domain].biddingEnd == 0) {
             // Start an auction for the domain
             auctions[_domain] = Auction(
-                block.timestamp + 1 minutes,
                 block.timestamp + 2 minutes,
+                block.timestamp + 4 minutes,
                 0,
                 address(0)
             );
@@ -172,8 +172,6 @@ contract DomainRegistrar {
         for (uint256 i = 0; i < domains.length; i++) {
             Auction memory auction = auctions[domains[i]];
             Status status = getDomainStatus(auction);
-            console.log(domains[i]);
-            console.log(auction.highestBidder);
             if (
                 status == Status.Registered && auction.highestBidder == sender
             ) {

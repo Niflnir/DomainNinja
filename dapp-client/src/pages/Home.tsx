@@ -8,9 +8,10 @@ import { domainRegistrarAbi, domainRegistrarAddress } from '@/utils/constants';
 import { useNavigate } from 'react-router-dom';
 import { isMetamaskConnected } from '@/utils/helper';
 
-interface DomainWithStatus {
+interface DomainInfo {
   domain: string;
   status: string;
+  owner: any;
 }
 
 interface HomeProps {
@@ -19,7 +20,7 @@ interface HomeProps {
 
 const Home: React.FC<HomeProps> = () => {
   const navigate = useNavigate();
-  const [domainsWithStatus, setDomainsWithStatus] = useState<DomainWithStatus[]>([]);
+  const [domainInfos, setDomainInfos] = useState<DomainInfo[]>([]);
 
   useEffect(() => {
     const fetchDomains = async () => {
@@ -28,8 +29,9 @@ const Home: React.FC<HomeProps> = () => {
       }
       const provider = new ethers.BrowserProvider((window as any).ethereum);
       const contract = new ethers.Contract(domainRegistrarAddress, domainRegistrarAbi, provider);
-      const domainsWithStatus: DomainWithStatus[] = await contract.getDomainsWithStatus();
-      setDomainsWithStatus(domainsWithStatus);
+      const domainInfos: DomainInfo[] = await contract.getDomainsWithStatus();
+      domainInfos.forEach((domainInfo) => console.log(domainInfo));
+      setDomainInfos(domainInfos);
     }
     fetchDomains();
   }, [])
@@ -39,20 +41,22 @@ const Home: React.FC<HomeProps> = () => {
       <Navbar />
       <div className='flex flex-col items-center justify-center px-10 pb-10'>
         <div className='flex justify-center py-6 text-xl font-bold'>Domain Name Listings</div>
-        <div className='w-3/5 rounded-lg border border-gray-200 shadow-md'>
+        <div className='w-[60%] rounded-lg border border-gray-200 shadow-md'>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className='w-2/5'>Domain</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead className='w-[15%]'>Domain</TableHead>
+                <TableHead className='w-[20%]'>Status</TableHead>
+                <TableHead>Owned By</TableHead>
                 <TableHead className='w-[10%]'></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {domainsWithStatus.map((item) => (
+              {domainInfos.map((item) => (
                 <TableRow key={item.domain}>
                   <TableCell>{item.domain}</TableCell>
                   <TableCell>{item.status}</TableCell>
+                  <TableCell>{item.owner}</TableCell>
                   {
                     (item.status === "Available" || item.status === "Bidding")
                     &&
@@ -61,7 +65,7 @@ const Home: React.FC<HomeProps> = () => {
                     </TableCell>
                   }
                   {
-                    item.status === "Reveal"
+                    item.status === "Revealing"
                     &&
                     <TableCell>
                       <Button type="submit" onClick={() => navigate("/reveal")}>Reveal</Button>

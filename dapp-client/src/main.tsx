@@ -10,6 +10,7 @@ import './index.css'
 import Account from './pages/Account.tsx'
 
 const web3 = new Web3("ws://localhost:8545");
+(window as any).ethereum.on('accountsChanged', () => window.location.reload());
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
