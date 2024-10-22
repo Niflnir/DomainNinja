@@ -18,4 +18,12 @@ const generateCommitment = (web3: Web3, amount: string, secret: string) => {
   return commitment;
 }
 
-export { generateSecret, generateCommitment };
+const isMetamaskConnected = () => {
+  if (!(window as any).ethereum) {
+    console.log("Please install metamask extension");
+    return false;
+  }
+  return true;
+}
+
+export { generateSecret, generateCommitment, isMetamaskConnected };

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { domainRegistrarAbi, domainRegistrarAddress } from "@/utils/constants";
-import { generateCommitment, generateSecret } from "@/utils/helper";
+import { generateCommitment, generateSecret, isMetamaskConnected } from "@/utils/helper";
 import { ethers } from "ethers";
 import { memo, useEffect, useState } from "react"
 
@@ -20,35 +20,43 @@ const Bid: React.FC<BidProps> = ({ web3 }) => {
   const [domains, setDomains] = useState<string[]>([]);
 
   useEffect(() => {
-    const fetchAvailableDomains = async () => {
+    const fetchDomains = async () => {
       const provider = new ethers.BrowserProvider((window as any).ethereum);
       const contract = new ethers.Contract(domainRegistrarAddress, domainRegistrarAbi, provider);
-      const domains: string[] = await contract.getDomains();
+      const domains: string[] = await contract.getBiddableDomains();
       setDomains(domains);
     }
-    fetchAvailableDomains();
+    fetchDomains();
   }, [])
 
-  const commitHandler = async () => {
-    try {
-      if (!(window as any).ethereum) {
-        console.log("Please install metamask extension");
-        return;
-      }
+  const copySecretHandler = () => {
+    navigator.clipboard.writeText(secret)
+    toast({
+      duration: 1500,
+      title: `Copied to clipboard`,
+    })
+  }
 
+  const bidHandler = async () => {
+    if (!isMetamaskConnected) {
+      return;
+    }
+    try {
       const commitment = generateCommitment(web3, amount, secret);
       const provider = new ethers.BrowserProvider((window as any).ethereum);
       const signer = await provider.getSigner();
+      const accounts = await provider.listAccounts();
+
       const contract = new ethers.Contract(domainRegistrarAddress, domainRegistrarAbi, signer);
-      contract.on("Committed", (from, domain, value) => {
-        console.log(`Committed event triggered!`);
-        console.log(`From: ${from}`);
-        console.log(`Domain: ${domain}`);
-        console.log(`Value: ${value}`);
+      contract.on("Bidded", (domain) => {
+        console.log(`Bidded event triggered!`);
+        toast({
+          title: `Successfully bidded for domain ${domain}`,
+        })
         window.location.reload();
       });
 
-      const tx = await contract.commit(domain, commitment, {
+      const tx = await contract.bid(domain, commitment, accounts[0], {
         value: ethers.parseEther(amount),
       })
       await tx.wait();
@@ -64,7 +72,7 @@ const Bid: React.FC<BidProps> = ({ web3 }) => {
     <div className='absolute flex h-full w-full flex-col bg-white'>
       <Navbar />
       <div className="flex flex-col items-center">
-        <div className="text-xl font-bold py-20">Auction Commit</div>
+        <div className="text-xl font-bold py-20">Auction Bid</div>
         <div className="flex flex-col gap-y-4 w-2/5">
           <Select onValueChange={(value) => setDomain(value)}>
             <SelectTrigger>
@@ -81,9 +89,10 @@ const Bid: React.FC<BidProps> = ({ web3 }) => {
           <Input type="number" min={0} placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
           <div className="flex gap-x-2">
             <Input type="email" readOnly placeholder="Secret" value={secret} onChange={(e) => setSecret(e.target.value)} />
+            <Button disabled={!secret} onClick={() => copySecretHandler()}>Copy</Button>
             <Button type="submit" onClick={() => setSecret(generateSecret(web3))}>Generate</Button>
           </div>
-          <Button type="submit" onClick={() => commitHandler()}>Commit</Button>
+          <Button type="submit" onClick={() => bidHandler()}>Bid</Button>
         </div>
       </div>
     </div>

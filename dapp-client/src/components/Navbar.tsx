@@ -22,6 +22,9 @@ const Navbar: React.FC<NavbarProps> = () => {
           <NavigationMenuLink href="/reveal" className={navigationMenuTriggerStyle()}>
             Reveal
           </NavigationMenuLink>
+          <NavigationMenuLink href="/account" className={navigationMenuTriggerStyle()}>
+            Account
+          </NavigationMenuLink>
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>

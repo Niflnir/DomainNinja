@@ -6,6 +6,7 @@ import Web3 from 'web3';
 import { ethers } from 'ethers';
 import { domainRegistrarAbi, domainRegistrarAddress } from '@/utils/constants';
 import { useNavigate } from 'react-router-dom';
+import { isMetamaskConnected } from '@/utils/helper';
 
 interface DomainWithStatus {
   domain: string;
@@ -21,22 +22,15 @@ const Home: React.FC<HomeProps> = () => {
   const [domainsWithStatus, setDomainsWithStatus] = useState<DomainWithStatus[]>([]);
 
   useEffect(() => {
-    const checkMetamask = async () => {
-      if (!(window as any).ethereum) {
-        console.log("Please install metamask extension");
+    const fetchDomains = async () => {
+      if (!isMetamaskConnected) {
         return;
       }
-      const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
-      console.log(accounts);
-    }
-    const fetchDomains = async () => {
       const provider = new ethers.BrowserProvider((window as any).ethereum);
       const contract = new ethers.Contract(domainRegistrarAddress, domainRegistrarAbi, provider);
       const domainsWithStatus: DomainWithStatus[] = await contract.getDomainsWithStatus();
-      console.log(domainsWithStatus);
       setDomainsWithStatus(domainsWithStatus);
     }
-    checkMetamask();
     fetchDomains();
   }, [])
 
@@ -60,7 +54,7 @@ const Home: React.FC<HomeProps> = () => {
                   <TableCell>{item.domain}</TableCell>
                   <TableCell>{item.status}</TableCell>
                   {
-                    (item.status === "Commit" || item.status === "Available")
+                    (item.status === "Available" || item.status === "Bidding")
                     &&
                     <TableCell>
                       <Button type="submit" onClick={() => navigate("/bid")}>Bid</Button>
