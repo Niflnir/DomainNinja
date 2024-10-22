@@ -1,4 +1,7 @@
 ![Domain Ninja Logo](logo.png)
+
+My Decentralized Domain Name Registrar
+
 ### Setup local hardhat
 Export seed phrase and start hardhat
 ```zsh
