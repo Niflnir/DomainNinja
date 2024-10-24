@@ -4,12 +4,12 @@ My Decentralized Domain Name Registrar
 
 ---
 
-### Setup local hardhat
-Export seed phrase and start hardhat
+### Setup local Ethereum blockchain with hardhat
+Export seed phrase and start blockchain
 ```zsh
 export SEED_PHRASE="your-12-word-seed-phrase" && npx hardhat node
 ```
-Compile and deploy smart contract on hardhat. Copy ABI to frontend folder.
+Compile and deploy smart contract. Copy ABI to frontend folder.
 ```zsh
 npx hardhat compile \
 && rm -rf ./ignition/deployments \
