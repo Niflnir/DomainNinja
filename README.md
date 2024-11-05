@@ -10,7 +10,7 @@ Export seed phrase and start blockchain
 export SEED_PHRASE="your-12-word-seed-phrase" && npx hardhat node
 ```
 ### Configure and deploy smart contract
-By default both the commit and reveal phase is set to 2 minutes
+By default both the commit and reveal phase duration is set to 2 minutes
 
 Go to contracts/DomainRegistar.sol (lines 106 and 107) to configure commit and reveal phase duration
 ```zsh
