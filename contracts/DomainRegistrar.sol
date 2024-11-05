@@ -103,8 +103,8 @@ contract DomainRegistrar {
         if (auctions[_domain].biddingEnd == 0) {
             // Start an auction for the domain
             auctions[_domain] = Auction(
-                block.timestamp + 2 minutes,
-                block.timestamp + 4 minutes,
+                block.timestamp + 2 minutes, // Update value to change commit phase duration
+                block.timestamp + 4 minutes, // Update value to change reveal phase duration
                 0,
                 address(0)
             );
