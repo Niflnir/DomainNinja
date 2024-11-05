@@ -9,7 +9,15 @@ Export seed phrase and start blockchain
 ```zsh
 export SEED_PHRASE="your-12-word-seed-phrase" && npx hardhat node
 ```
-Compile and deploy smart contract. Copy ABI to frontend folder.
+### Configure and deploy smart contract
+By default both the commit and reveal phase is set to 2 minutes
+
+Go to contracts/DomainRegistar.sol (lines 106 and 107) to configure commit and reveal phase duration
+```zsh
+block.timestamp + 2 minutes, // Update value to change commit phase duration
+block.timestamp + 4 minutes, // Update value to change reveal phase duration
+```
+Compile and deploy smart contract to blockchain and copy ABI to frontend folder
 ```zsh
 npx hardhat compile \
 && rm -rf ./ignition/deployments \
